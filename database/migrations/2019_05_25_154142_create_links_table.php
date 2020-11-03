@@ -14,12 +14,17 @@ class CreateLinksTable extends Migration
     public function up()
     {
         Schema::create('links', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->integer('user_id')->index();
+            $table->uuid('id')->unique();
+            $table->uuid('user_id')->index();
             $table->string('url');
             $table->string('name');
             $table->string('description')->nullable();
             $table->timestamps();
+
+            $table->foreign('user_id', 'links_user_id_foreign')
+                ->references('id')
+                ->on('users')
+                ->onDelete('cascade');
         });
     }
 
@@ -30,6 +35,10 @@ class CreateLinksTable extends Migration
      */
     public function down()
     {
+        Schema::table('links', function (Blueprint $table) {
+            $table->dropForeign('links_user_id_foreign');
+        });
+
         Schema::dropIfExists('links');
     }
 }
