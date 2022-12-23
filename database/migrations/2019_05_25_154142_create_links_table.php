@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateLinksTable extends Migration
+return new class extends Migration
 {
     /**
      * Run the migrations.
@@ -14,8 +14,8 @@ class CreateLinksTable extends Migration
     public function up()
     {
         Schema::create('links', function (Blueprint $table) {
-            $table->uuid('id')->unique();
-            $table->uuid('user_id')->index();
+            $table->uuid('id')->primary();
+            $table->uuid('user_id');
             $table->string('url');
             $table->string('name');
             $table->string('description')->nullable();
@@ -41,4 +41,4 @@ class CreateLinksTable extends Migration
 
         Schema::dropIfExists('links');
     }
-}
+};
