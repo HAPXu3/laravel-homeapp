@@ -1,2 +1,2 @@
-# Home laravel app
-Platform for home services.
+# About
+Sandbox for experiments
