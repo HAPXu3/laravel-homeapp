@@ -1,0 +1,70 @@
+services:
+    nginx:
+        build:
+            context: .
+            dockerfile_inline: |
+                FROM nginx:mainline-alpine-slim
+                RUN echo $'\
+                server {\n\
+                    listen 80;\n\
+                    listen [::]:80;\n\
+                    index index.php;\n\
+                    server_name app.localhost;\n\
+                    error_log  /var/log/nginx/error.log;\n\
+                    access_log /var/log/nginx/access.log;\n\
+                    root /var/www/app/public;\n\
+                    add_header X-Frame-Options \"SAMEORIGIN\";\n\
+                    add_header X-Content-Type-Options \"nosniff\";\n\
+                    index index.php;\n\
+                    charset utf-8;\n\
+                    location / {\n\
+                        try_files $$uri $$uri/ /index.php?$$query_string;\n\
+                    }\n\
+                    location = /favicon.ico { access_log off; log_not_found off; }\n\
+                    location = /robots.txt  { access_log off; log_not_found off; }\n\
+                    error_page 404 /index.php;\n\
+                    location ~ \.php$$ {\n\
+                        fastcgi_pass php:9000;\n\
+                        fastcgi_param SCRIPT_FILENAME $$realpath_root$$fastcgi_script_name;\n\
+                        include fastcgi_params;\n\
+                    }\n\
+                    location ~ /\.(?!well-known).* {\n\
+                        deny all;\n\
+                    }\n\
+                }' > /etc/nginx/conf.d/app.conf
+        volumes:
+            - type: bind
+              source: .
+              target: /var/www/app
+        ports:
+            - "8080:80"
+        depends_on:
+            - php
+    php:
+        build:
+            context: .
+            dockerfile_inline: |
+                FROM php:8.3-fpm-alpine
+                COPY . /var/www/app
+                WORKDIR /var/www/app
+                ENV COMPOSER_ALLOW_SUPERUSER=1
+                RUN docker-php-ext-install pdo_mysql
+                RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=./ --filename=composer \
+                    && php composer update && php composer install --optimize-autoloader --no-dev
+                RUN chown -R www-data:www-data ./storage
+        depends_on:
+            - mysql
+    mysql:
+        image: mysql:8
+        volumes:
+            - type: volume
+              source: mysql-db
+              target: /var/lib/mysql
+        environment:
+            - MYSQL_ROOT_PASSWORD=qwerty
+            - MYSQL_DATABASE=app
+            - MYSQL_USER=app_user
+            - MYSQL_PASSWORD=qwerty
+
+volumes:
+    mysql-db:
