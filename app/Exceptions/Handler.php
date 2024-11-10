@@ -1,30 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Exceptions;
 
-use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-use Throwable;
+use Illuminate\Foundation\Configuration\Exceptions;
 
-class Handler extends ExceptionHandler
+class Handler
 {
-    /**
-     * The list of the inputs that are never flashed to the session on validation exceptions.
-     *
-     * @var array<int, string>
-     */
-    protected $dontFlash = [
-        'current_password',
-        'password',
-        'password_confirmation',
-    ];
-
-    /**
-     * Register the exception handling callbacks for the application.
-     */
-    public function register(): void
+    public function __invoke(Exceptions $exceptions): Exceptions
     {
-        $this->reportable(function (Throwable $e) {
-            //
-        });
+        return $exceptions;
     }
 }
